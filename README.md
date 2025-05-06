@@ -1,21 +1,50 @@
-SSSP Project
-This project implements the Single-Source Shortest Paths (SSSP) problem with dynamic updates in three versions: Sequential, MPI, and MPI+OpenMP. The implementations are designed to run on the UTM cluster, handling large graphs like the Facebook dataset.
-Project Structure
+# 🔍 SSSP Project
 
-sssp_project/seq/: Sequential implementation.
-sssp_project/mpi/: MPI-based distributed implementation.
-sssp_project/mpi-openmp/: Hybrid MPI+OpenMP implementation.
+This repository implements the **Single-Source Shortest Paths (SSSP)** problem with **dynamic updates**, in three versions:
 
-Sequential Implementation
-Location
-sssp_project/seq/
-Files
+- **Sequential**
+- **MPI (Distributed)**
+- **MPI + OpenMP (Hybrid)**
 
-sssp_sequential.cpp: Main program for sequential SSSP with dynamic updates.
-graph_loader.h, graph_loader.cpp (assumed): Graph loading utilities.
-Makefile: Build script.
+These implementations are designed for execution on the **UTM computing cluster** and handle large graphs such as the Facebook dataset.
 
-Makefile
+---
+
+## 📁 Project Structure
+
+```
+sssp_project/
+├── seq/           # Sequential implementation
+├── mpi/           # MPI-based distributed implementation
+└── mpi-openmp/    # Hybrid MPI + OpenMP implementation
+```
+
+---
+
+## 🧭 Table of Contents
+
+- [Sequential Implementation](#-sequential-implementation)
+- [MPI Implementation](#-mpi-implementation)
+- [MPI + OpenMP Implementation](#-mpi--openmp-implementation)
+- [General Notes](#-general-notes)
+
+---
+
+## 🚀 Sequential Implementation
+
+### 📂 Location
+`sssp_project/seq/`
+
+### 📄 Files
+- `sssp_sequential.cpp` — Main SSSP logic with dynamic updates  
+- `graph_loader.cpp`, `graph_loader.h` — Graph parsing utilities  
+- `Makefile` — Build script  
+
+### 🛠️ Makefile
+<details>
+<summary>Click to expand</summary>
+
+```makefile
 CC = g++
 CFLAGS = -O2 -std=c++17
 LDFLAGS =
@@ -33,26 +62,32 @@ graph_loader.o: graph_loader.cpp graph_loader.h
 
 clean:
 	rm -f *.o sssp_sequential
+```
+</details>
 
-How to Run on UTM Cluster
+### 🧪 Running on UTM Cluster
 
-Transfer Files:scp -r sssp_project/seq username@utm-cluster:/path/to/destination
+```bash
+# Transfer files
+scp -r sssp_project/seq username@utm-cluster:/path/to/destination
 
+# Login to cluster
+ssh username@utm-cluster
 
-Log in:ssh username@utm-cluster
+# Load necessary modules
+module load gcc
 
-
-Load Modules:module load gcc
-
-
-Compile:cd /path/to/sssp_project/seq
+# Compile
+cd /path/to/sssp_project/seq
 make
 
+# Copy input files to /mirror
+cp facebook_combined.txt facebook_graph.txt.part.8 /mirror/
+```
 
-Prepare Input Files:Ensure facebook_combined.txt and facebook_graph.txt.part.8 are in /mirror:cp facebook_combined.txt facebook_graph.txt.part.8 /mirror/
-
-
-Submit Job (run_seq.sh):#!/bin/bash
+#### 📝 Submit Job (`run_seq.sh`)
+```bash
+#!/bin/bash
 #SBATCH --job-name=sssp_sequential
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
@@ -62,32 +97,35 @@ Submit Job (run_seq.sh):#!/bin/bash
 #SBATCH --error=sssp_seq_%j.err
 
 ./sssp_sequential
-
+```
+```bash
 sbatch run_seq.sh
+```
 
-
-Check Output:squeue -u $USER
+#### 📈 Check Output
+```bash
+squeue -u $USER
 cat sssp_seq_%j.out
+```
 
+---
 
+## 🌐 MPI Implementation
 
-Precautions
+### 📂 Location
+`sssp_project/mpi/`
 
-Verify /mirror exists and is writable, or modify file paths in the code.
-Adjust --mem and --time based on graph size.
-Ensure GCC supports C++17 (e.g., module load gcc/9.3.0 if needed).
+### 📄 Files
+- `main.cpp` — MPI entry point  
+- `sssp_mpi.cpp`, `sssp_mpi.h` — SSSP logic using MPI  
+- `graph_loader.*` — Graph utilities  
+- `Makefile` — Build instructions  
 
-MPI Implementation
-Location
-sssp_project/mpi/
-Files
+### 🛠️ Makefile
+<details>
+<summary>Click to expand</summary>
 
-main.cpp: Main MPI program.
-sssp_mpi.h, sssp_mpi.cpp: Core SSSP functions.
-graph_loader.h, graph_loader.cpp: Graph loading utilities.
-Makefile: Build script.
-
-Makefile
+```makefile
 CC = mpicxx
 CFLAGS = -O2 -std=c++17
 LDFLAGS =
@@ -108,27 +146,27 @@ graph_loader.o: graph_loader.cpp graph_loader.h
 
 clean:
 	rm -f *.o sssp_mpi
+```
+</details>
 
-How to Run on UTM Cluster
+### 🧪 Running on UTM Cluster
 
-Transfer Files:scp -r sssp_project/mpi username@utm-cluster:/path/to/destination
+```bash
+scp -r sssp_project/mpi username@utm-cluster:/path/to/destination
+ssh username@utm-cluster
 
-
-Log in:ssh username@utm-cluster
-
-
-Load Modules:module load mpi
+module load mpi
 module load gcc
 
-
-Compile:cd /path/to/sssp_project/mpi
+cd /path/to/sssp_project/mpi
 make
 
+cp test_graph.txt test_graph.txt.part.8 /mirror/
+```
 
-Prepare Input Files:Ensure test_graph.txt and test_graph.txt.part.8 are in /mirror:cp test_graph.txt test_graph.txt.part.8 /mirror/
-
-
-Submit Job (run_mpi.sh):#!/bin/bash
+#### 📝 Submit Job (`run_mpi.sh`)
+```bash
+#!/bin/bash
 #SBATCH --job-name=sssp_mpi
 #SBATCH --nodes=2
 #SBATCH --ntasks-per-node=4
@@ -139,33 +177,35 @@ Submit Job (run_mpi.sh):#!/bin/bash
 
 module load mpi
 mpirun -np 8 ./sssp_mpi
-
+```
+```bash
 sbatch run_mpi.sh
+```
 
-
-Check Output:squeue -u $USER
+#### 📈 Check Output
+```bash
+squeue -u $USER
 cat sssp_mpi_%j.out
+```
 
+---
 
+## 🧵 MPI + OpenMP Implementation
 
-Precautions
+### 📂 Location
+`sssp_project/mpi-openmp/`
 
-Ensure test_graph.txt is formatted for a 6-vertex graph.
-Adjust mpirun -np to match the partition file and cluster capacity.
-Verify MPI module compatibility (e.g., OpenMPI or MPICH).
-Monitor MPI_Allreduce performance for large graphs.
+### 📄 Files
+- `main.cpp` — Hybrid parallel main program  
+- `sssp_mpi.*` — Core MPI + OpenMP implementation  
+- `graph_loader.*` — Graph loader  
+- `Makefile` — Compilation rules  
 
-MPI+OpenMP Implementation
-Location
-sssp_project/mpi-openmp/
-Files
+### 🛠️ Makefile
+<details>
+<summary>Click to expand</summary>
 
-main.cpp: Main hybrid program.
-sssp_mpi.h, sssp_mpi.cpp: Core SSSP functions with OpenMP.
-graph_loader.h, graph_loader.cpp: Graph loading utilities.
-Makefile: Build script.
-
-Makefile
+```makefile
 CC = mpicxx
 CFLAGS = -O2 -std=c++17 -fopenmp
 LDFLAGS = -fopenmp
@@ -186,27 +226,27 @@ graph_loader.o: graph_loader.cpp graph_loader.h
 
 clean:
 	rm -f *.o sssp_mpi_openmp
+```
+</details>
 
-How to Run on UTM Cluster
+### 🧪 Running on UTM Cluster
 
-Transfer Files:scp -r sssp_project/mpi-openmp username@utm-cluster:/path/to/destination
+```bash
+scp -r sssp_project/mpi-openmp username@utm-cluster:/path/to/destination
+ssh username@utm-cluster
 
-
-Log in:ssh username@utm-cluster
-
-
-Load Modules:module load mpi
+module load mpi
 module load gcc
 
-
-Compile:cd /path/to/sssp_project/mpi-openmp
+cd /path/to/sssp_project/mpi-openmp
 make
 
+cp facebook_graph.txt facebook_graph.txt.part.8 /mirror/
+```
 
-Prepare Input Files:Ensure facebook_graph.txt and facebook_graph.txt.part.8 are in /mirror:cp facebook_graph.txt facebook_graph.txt.part.8 /mirror/
-
-
-Submit Job (run_mpi_openmp.sh):#!/bin/bash
+#### 📝 Submit Job (`run_mpi_openmp.sh`)
+```bash
+#!/bin/bash
 #SBATCH --job-name=sssp_mpi_openmp
 #SBATCH --nodes=2
 #SBATCH --ntasks-per-node=4
@@ -219,27 +259,26 @@ Submit Job (run_mpi_openmp.sh):#!/bin/bash
 module load mpi
 export OMP_NUM_THREADS=4
 mpirun -np 8 ./sssp_mpi_openmp
-
+```
+```bash
 sbatch run_mpi_openmp.sh
+```
 
-
-Check Output:squeue -u $USER
+#### 📈 Check Output
+```bash
+squeue -u $USER
 cat sssp_mpi_openmp_%j.out
+```
 
+---
 
+## ⚠️ General Notes
 
-Precautions
-
-Ensure /mirror is accessible and input files are correctly formatted.
-Set --cpus-per-task=4 to match OMP_NUM_THREADS=4.
-Adjust --mem and --time for larger graphs.
-Verify MPI and OpenMP compatibility with cluster modules.
-Monitor synchronization overhead from MPI_Allreduce and OpenMP critical sections.
-
-General Notes
-
-Input Files: Place input files in /mirror or modify code paths if /mirror is unavailable.
-Cluster Policies: Check UTM cluster documentation for job limits and resource constraints.
-Performance: The MPI+OpenMP version may require tuning (e.g., thread count, process count) for optimal performance.
-Debugging: Check .err files for errors related to file access or resource limits.
-
+- **Input Location:** Place all input files in `/mirror`, or update paths in the code.
+- **Resource Allocation:** Tune `--mem`, `--time`, and parallelism based on graph size.
+- **Compatibility:** Ensure proper module versions for **GCC**, **MPI**, and **OpenMP**.
+- **Debugging:** Check `.err` files if jobs fail or hang.
+- **Performance Tips:**
+  - Sequential: Optimize with compiler flags
+  - MPI: Tune `-np` to match dataset partitions
+  - MPI+OpenMP: Match `--cpus-per-task` with `OMP_NUM_THREADS`
