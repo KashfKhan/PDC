@@ -1,4 +1,4 @@
-# 🔍 SSSP Project
+# SSSP Project
 
 This repository implements the **Single-Source Shortest Paths (SSSP)** problem with **dynamic updates**, in three versions:
 
@@ -10,7 +10,7 @@ These implementations are designed for execution on the **UTM computing cluster*
 
 ---
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 sssp_project/
@@ -21,7 +21,7 @@ sssp_project/
 
 ---
 
-## 🧭 Table of Contents
+## Table of Contents
 
 - [Sequential Implementation](#-sequential-implementation)
 - [MPI Implementation](#-mpi-implementation)
@@ -30,17 +30,17 @@ sssp_project/
 
 ---
 
-## 🚀 Sequential Implementation
+## Sequential Implementation
 
-### 📂 Location
+### Location
 `sssp_project/seq/`
 
-### 📄 Files
+### Files
 - `sssp_sequential.cpp` — Main SSSP logic with dynamic updates  
 - `graph_loader.cpp`, `graph_loader.h` — Graph parsing utilities  
 - `Makefile` — Build script  
 
-### 🛠️ Makefile
+### Makefile
 <details>
 <summary>Click to expand</summary>
 
@@ -65,7 +65,7 @@ clean:
 ```
 </details>
 
-### 🧪 Running on UTM Cluster
+### Running on UTM Cluster
 
 ```bash
 # Transfer files
@@ -85,7 +85,7 @@ make
 cp facebook_combined.txt facebook_graph.txt.part.8 /mirror/
 ```
 
-#### 📝 Submit Job (`run_seq.sh`)
+#### Submit Job (`run_seq.sh`)
 ```bash
 #!/bin/bash
 #SBATCH --job-name=sssp_sequential
@@ -102,7 +102,7 @@ cp facebook_combined.txt facebook_graph.txt.part.8 /mirror/
 sbatch run_seq.sh
 ```
 
-#### 📈 Check Output
+#### Check Output
 ```bash
 squeue -u $USER
 cat sssp_seq_%j.out
@@ -110,18 +110,18 @@ cat sssp_seq_%j.out
 
 ---
 
-## 🌐 MPI Implementation
+## MPI Implementation
 
-### 📂 Location
+### Location
 `sssp_project/mpi/`
 
-### 📄 Files
+### Files
 - `main.cpp` — MPI entry point  
 - `sssp_mpi.cpp`, `sssp_mpi.h` — SSSP logic using MPI  
 - `graph_loader.*` — Graph utilities  
 - `Makefile` — Build instructions  
 
-### 🛠️ Makefile
+### Makefile
 <details>
 <summary>Click to expand</summary>
 
@@ -149,7 +149,7 @@ clean:
 ```
 </details>
 
-### 🧪 Running on UTM Cluster
+### Running on UTM Cluster
 
 ```bash
 scp -r sssp_project/mpi username@utm-cluster:/path/to/destination
@@ -164,7 +164,7 @@ make
 cp test_graph.txt test_graph.txt.part.8 /mirror/
 ```
 
-#### 📝 Submit Job (`run_mpi.sh`)
+#### Submit Job (`run_mpi.sh`)
 ```bash
 #!/bin/bash
 #SBATCH --job-name=sssp_mpi
@@ -182,7 +182,7 @@ mpirun -np 8 ./sssp_mpi
 sbatch run_mpi.sh
 ```
 
-#### 📈 Check Output
+#### Check Output
 ```bash
 squeue -u $USER
 cat sssp_mpi_%j.out
@@ -190,12 +190,12 @@ cat sssp_mpi_%j.out
 
 ---
 
-## 🧵 MPI + OpenMP Implementation
+## MPI + OpenMP Implementation
 
-### 📂 Location
+### Location
 `sssp_project/mpi-openmp/`
 
-### 📄 Files
+### Files
 - `main.cpp` — Hybrid parallel main program  
 - `sssp_mpi.*` — Core MPI + OpenMP implementation  
 - `graph_loader.*` — Graph loader  
@@ -229,7 +229,7 @@ clean:
 ```
 </details>
 
-### 🧪 Running on UTM Cluster
+### Running on UTM Cluster
 
 ```bash
 scp -r sssp_project/mpi-openmp username@utm-cluster:/path/to/destination
@@ -244,7 +244,7 @@ make
 cp facebook_graph.txt facebook_graph.txt.part.8 /mirror/
 ```
 
-#### 📝 Submit Job (`run_mpi_openmp.sh`)
+#### Submit Job (`run_mpi_openmp.sh`)
 ```bash
 #!/bin/bash
 #SBATCH --job-name=sssp_mpi_openmp
@@ -264,7 +264,7 @@ mpirun -np 8 ./sssp_mpi_openmp
 sbatch run_mpi_openmp.sh
 ```
 
-#### 📈 Check Output
+#### Check Output
 ```bash
 squeue -u $USER
 cat sssp_mpi_openmp_%j.out
@@ -272,7 +272,7 @@ cat sssp_mpi_openmp_%j.out
 
 ---
 
-## ⚠️ General Notes
+## General Notes
 
 - **Input Location:** Place all input files in `/mirror`, or update paths in the code.
 - **Resource Allocation:** Tune `--mem`, `--time`, and parallelism based on graph size.
