@@ -100,25 +100,31 @@ void UpdateAffectedVertices(
 ) {
     const long long INF = std::numeric_limits<long long>::max();
     std::vector<std::vector<int>> children(Dist.size());
+    std::vector<int> visited(Dist.size(), 0); // Track visited vertices in deletion phase
+    const int max_iterations = Dist.size(); // Limit iterations to vertex count
 
+    // Build children array
     for (int v = 0; v < Dist.size(); ++v) {
         if (Parent[v] != -1 && Parent[v] >= 0 && Parent[v] < Dist.size()) {
             children[Parent[v]].push_back(v);
         }
     }
 
+    // Deletion phase
     int global_del_changed = 1;
-    while (global_del_changed) {
+    int iteration = 0;
+    while (global_del_changed && iteration < max_iterations) {
         bool local_del_changed = false;
         #pragma omp parallel for
         for (int v : graph.localVertices) {
-            if (v >= 0 && v < Dist.size() && AffectedDel[v]) {
-                AffectedDel[v] = 0;
-                for (int c : children[v]) {
-                    if (c >= 0 && c < Dist.size()) {
-                        #pragma omp critical
-                        {
-                            std::cout << "Rank " << rank << ": UpdateAffectedVertices Del set Dist[" << c << "] to INF\n";
+            if (v >= 0 && v < Dist.size() && AffectedDel[v] && !visited[v]) {
+                #pragma omp critical
+                {
+                    AffectedDel[v] = 0;
+                    visited[v] = 1; // Mark as processed
+                    for (int c : children[v]) {
+                        if (c >= 0 && c < Dist.size() && !visited[c]) {
+                            std::cout << "Rank " << rank << ": UpdateAffectedVertices Del set Dist[" << c << "] to INF (iteration " << iteration << ")\n";
                             Dist[c] = INF;
                             AffectedDel[c] = 1;
                             Affected[c] = 1;
@@ -137,8 +143,14 @@ void UpdateAffectedVertices(
         MPI_Allreduce(MPI_IN_PLACE, Dist.data(), Dist.size(), MPI_LONG_LONG, MPI_MIN, MPI_COMM_WORLD);
         MPI_Allreduce(MPI_IN_PLACE, AffectedDel.data(), AffectedDel.size(), MPI_INT, MPI_MAX, MPI_COMM_WORLD);
         MPI_Allreduce(MPI_IN_PLACE, Affected.data(), Affected.size(), MPI_INT, MPI_MAX, MPI_COMM_WORLD);
+        iteration++;
     }
 
+    if (iteration >= max_iterations) {
+        std::cout << "Rank " << rank << ": Warning: Deletion phase reached max iterations (" << max_iterations << "), possible cycle in Parent\n";
+    }
+
+    // Update phase
     int global_changed = 1;
     while (global_changed) {
         bool local_changed = false;
@@ -174,9 +186,9 @@ void UpdateAffectedVertices(
             }
         }
 
-        int local_changed_int = local_changed ? 1 : 0;
+        int local_del_changed_int = local_changed ? 1 : 0;
         int global_changed_int = 0;
-        MPI_Allreduce(&local_changed_int, &global_changed_int, 1, MPI_INT, MPI_LOR, MPI_COMM_WORLD);
+        MPI_Allreduce(&local_del_changed_int, &global_changed_int, 1, MPI_INT, MPI_LOR, MPI_COMM_WORLD);
         global_changed = global_changed_int;
 
         MPI_Allreduce(MPI_IN_PLACE, Dist.data(), Dist.size(), MPI_LONG_LONG, MPI_MIN, MPI_COMM_WORLD);
